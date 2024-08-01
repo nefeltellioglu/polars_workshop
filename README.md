@@ -1,5 +1,5 @@
 # polars_workshop
- Introduction to Polars in Infectious Disease Modelling
+ Introduction to Polars Library in Infectious Disease Modelling
 
 
  Install packages
