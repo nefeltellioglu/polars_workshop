@@ -34,7 +34,7 @@ class Params:
     record_all_new_cases: bool
 
 
-def run_SEIR_model(p: Params):
+def run_SEIR_model_pl(p: Params):
     secondary_infections_from_seed_infection_list = []
     exposed_by_seed_df = pl.DataFrame()
     all_exposed_cases = pl.DataFrame()
@@ -204,26 +204,9 @@ params = Params(no_runs = 10,
                 record_all_new_cases = True)
 
 
-# get the start time
-st = time.time()
-
-results = run_SEIR_model(params)
-#secondary_infections_from_seed_infection_list, exposed_by_seed_df, all_records = run_SEIR_model(params)
-
-# get the end time
-et = time.time()
-
-# get the execution time
-elapsed_time = et - st
-print('Execution time:', elapsed_time, 'seconds')   
-
-print(f"Secondary infections from seed in each run: {results['SAR']}")
-results["exposed_by_seed"] 
-results["all_transmission"] 
-results["all_exposed_cases"] 
 
 #####plot transmission
-def plot_SEIR(transmission_df) -> None:
+def plot_SEIR_pl(transmission_df) -> None:
     
     
     fig, ax = plt.subplots(figsize=(12, 8))
@@ -249,9 +232,29 @@ def plot_SEIR(transmission_df) -> None:
 
     plt.show()
     # fig.savefig('plot_SEIR.tiff', bbox_inches="tight", dpi=300)
-plot_SEIR(results["all_transmission"])
-
-#results["exposed_by_seed"].write_csv(os.path.join('exposed_by_seed.csv'))
-#results["all_transmission"].write_csv(os.path.join('transmission.csv'))
-#results["all_exposed_cases"].write_csv(os.path.join('all_exposed_cases.csv'))
+    
+if __name__ == "__main__":     
+    # get the start time
+    st = time.time()
+    
+    results = run_SEIR_model_pl(params)
+    #secondary_infections_from_seed_infection_list, exposed_by_seed_df, all_records = run_SEIR_model(params)
+    
+    # get the end time
+    et = time.time()
+    
+    # get the execution time
+    elapsed_time = et - st
+    print('Execution time:', elapsed_time, 'seconds')   
+    
+    print(f"Secondary infections from seed in each run: {results['SAR']}")
+    results["exposed_by_seed"] 
+    results["all_transmission"] 
+    results["all_exposed_cases"] 
+    
+    plot_SEIR_pl(results["all_transmission"])
+    
+    #results["exposed_by_seed"].write_csv(os.path.join('exposed_by_seed.csv'))
+    #results["all_transmission"].write_csv(os.path.join('transmission.csv'))
+    #results["all_exposed_cases"].write_csv(os.path.join('all_exposed_cases.csv'))
        

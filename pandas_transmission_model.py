@@ -29,7 +29,7 @@ class Params:
     record_transmission: bool
     record_all_new_cases: bool
 
-def run_SEIR_model(p: Params):
+def run_SEIR_model_pd(p: Params):
     secondary_infections_from_seed_infection_list = []
     exposed_by_seed_df = pd.DataFrame()
     all_exposed_cases = pd.DataFrame()
@@ -140,22 +140,8 @@ params = Params(
     record_all_new_cases=True
 )
 
-# get the start time
-st = time.time()
-
-results = run_SEIR_model(params)
-
-# get the end time
-et = time.time()
-
-# get the execution time
-elapsed_time = et - st
-print('Execution time:', elapsed_time, 'seconds')
-
-print(f"Secondary infections from seed in each run: {results['SAR']}")
-
 ##### Plot transmission
-def plot_SEIR(transmission_df):
+def plot_SEIR_pd(transmission_df):
     fig, ax = plt.subplots(figsize=(12, 8))
     
     for r in transmission_df["run_no"].unique():
@@ -182,9 +168,26 @@ def plot_SEIR(transmission_df):
 
     plt.show()
     # fig.savefig('plot_SEIR.tiff', bbox_inches="tight", dpi=300)
-plot_SEIR(results["all_transmission"])
 
-#results["exposed_by_seed"].to_csv('exposed_by_seed.csv', index=False)
-#results["all_transmission"].to_csv('transmission.csv', index=False)
-#results["all_exposed_cases"].to_csv('all_exposed_cases.csv', index=False)
+if __name__ == "__main__":     
+    # get the start time
+    st = time.time()
+
+    results = run_SEIR_model_pd(params)
+
+    # get the end time
+    et = time.time()
+
+    # get the execution time
+    elapsed_time = et - st
+    print('Execution time:', elapsed_time, 'seconds')
+
+    print(f"Secondary infections from seed in each run: {results['SAR']}")
+
+
+    plot_SEIR_pd(results["all_transmission"])
+    
+    #results["exposed_by_seed"].to_csv('exposed_by_seed.csv', index=False)
+    #results["all_transmission"].to_csv('transmission.csv', index=False)
+    #results["all_exposed_cases"].to_csv('all_exposed_cases.csv', index=False)
 
