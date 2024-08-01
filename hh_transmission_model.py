@@ -62,7 +62,7 @@ def run_SEIR_model_pl(p: Params):
         "s_time_recovery": [0] * p.pop_size,
         "exposed_from": [-1] * p.pop_size,
         "pop_size": p.pop_size,
-        "hh_id": run,
+        #"hh_id": run,
         "run_no": run,
         }
         )
