@@ -35,6 +35,7 @@ def run_SEIR_model_pd(p: Params):
     all_exposed_cases = pd.DataFrame()
     rng = np.random.RandomState(p.random_seed)
     ts = np.arange(p.time_step, p.time_horizon, p.time_step)    
+    transmission_rate = 1 - ((1 - p.transmission_rate)**(p.time_step))
     
     if p.record_transmission:
         possible_states = pd.DataFrame({
@@ -46,8 +47,8 @@ def run_SEIR_model_pd(p: Params):
     for run in range(p.no_runs):
         secondary_infections_from_seed_infection = 0
         
-        # Initialize household
-        household = pd.DataFrame({
+        # Initialize population
+        population = pd.DataFrame({
             "id": range(p.pop_size),
             "state": ["Susceptible"] * p.pop_size,
             "s_time_exposed": [0.0] * p.pop_size,
@@ -60,41 +61,41 @@ def run_SEIR_model_pd(p: Params):
         })
         
         
-        # Infect one individual in the household (seed infection)
+        # Infect one individual in the population (seed infection)
         seed_infection_index = 0  # rng.randint(0, p.pop_size - 1)
-        household.loc[seed_infection_index, "state"] = "Infectious"
-        household.loc[seed_infection_index, "s_time_recovery"] = rng.exponential(p.inf_duration)
+        population.loc[seed_infection_index, "state"] = "Infectious"
+        population.loc[seed_infection_index, "s_time_recovery"] = rng.exponential(p.inf_duration)
         
         if p.record_transmission:
             cur_records = possible_states.copy()
-            cur_records['count'] = household['state'].value_counts().reindex(cur_records['state']).fillna(0).values
+            cur_records['count'] = population['state'].value_counts().reindex(cur_records['state']).fillna(0).values
             cur_records['t'] = ts[0] - p.time_step
             cur_records['run_no'] = run
             all_records = pd.concat([all_records, cur_records], ignore_index=True)
         
-        # Simulate transmission in the household
+        # Simulate transmission in the population
         for t in ts:
-            infected_ids = household[household["state"] == "Infectious"]["id"].tolist()
-            susceptible_individuals = household[household["state"] == "Susceptible"]
-            will_infected = rng.rand(len(susceptible_individuals)) < (p.transmission_rate * len(infected_ids))
+            infected_ids = population[population["state"] == "Infectious"]["id"].tolist()
+            susceptible_individuals = population[population["state"] == "Susceptible"]
+            will_infected = rng.rand(len(susceptible_individuals)) < (transmission_rate * len(infected_ids))
             will_infected_individuals = susceptible_individuals[will_infected]
             
             for idx in will_infected_individuals.index:
-                household.at[idx, 'state'] = 'Exposed'
-                household.at[idx, 's_time_exposed'] = t
-                household.at[idx, 's_time_infectious'] = t + rng.exponential(p.exposed_duration)
-                household.at[idx, 's_time_recovery'] = household.at[idx, 's_time_infectious'] + rng.exponential(p.inf_duration)
-                household.at[idx, 'exposed_from'] = random.choice(infected_ids)
+                population.at[idx, 'state'] = 'Exposed'
+                population.at[idx, 's_time_exposed'] = t
+                population.at[idx, 's_time_infectious'] = t + rng.exponential(p.exposed_duration)
+                population.at[idx, 's_time_recovery'] = population.at[idx, 's_time_infectious'] + rng.exponential(p.inf_duration)
+                population.at[idx, 'exposed_from'] = random.choice(infected_ids)
             
             # I -> R state transition
-            household.loc[(household["state"] == "Infectious") & (household["s_time_recovery"] < t), "state"] = "Recovered"
+            population.loc[(population["state"] == "Infectious") & (population["s_time_recovery"] < t), "state"] = "Recovered"
             
             # E -> I state transition
-            household.loc[(household["state"] == "Exposed") & (household["s_time_infectious"] < t), "state"] = "Infectious"
+            population.loc[(population["state"] == "Exposed") & (population["s_time_infectious"] < t), "state"] = "Infectious"
             
-            new_infs_from_seed = household[(household["s_time_exposed"] == t) & (household["exposed_from"] == seed_infection_index)]
+            new_infs_from_seed = population[(population["s_time_exposed"] == t) & (population["exposed_from"] == seed_infection_index)]
             if p.record_all_new_cases:
-                new_exposed_cases = household[household["s_time_exposed"] == t]
+                new_exposed_cases = population[population["s_time_exposed"] == t]
             
             if not new_infs_from_seed.empty:
                 exposed_by_seed_df = pd.concat([exposed_by_seed_df, new_infs_from_seed], ignore_index=True)
@@ -105,7 +106,7 @@ def run_SEIR_model_pd(p: Params):
             
             if p.record_transmission:
                 cur_records = possible_states.copy()
-                cur_records['count'] = household['state'].value_counts().reindex(cur_records['state']).fillna(0).values
+                cur_records['count'] = population['state'].value_counts().reindex(cur_records['state']).fillna(0).values
                 cur_records['t'] = t
                 cur_records['run_no'] = run
                 all_records = pd.concat([all_records, cur_records], ignore_index=True)

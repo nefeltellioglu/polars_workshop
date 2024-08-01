@@ -40,6 +40,7 @@ def run_SEIR_model_pl(p: Params):
     all_exposed_cases = pl.DataFrame()
     rng = np.random.RandomState(p.random_seed)
     ts = np.arange(p.time_step, p.time_horizon, p.time_step)    
+    transmission_rate = 1 - ((1 - p.transmission_rate)**(p.time_step))
     
     if p.record_transmission:
         possible_states = pl.DataFrame(
@@ -51,8 +52,8 @@ def run_SEIR_model_pl(p: Params):
     for run in range(p.no_runs):
         secondary_infections_from_seed_infection = 0
         
-        # Initialize household
-        household = pl.DataFrame(
+        # Initialize population
+        population = pl.DataFrame(
         {
         "id": range(p.pop_size),
         "state": ["Susceptible"] * p.pop_size,
@@ -66,14 +67,14 @@ def run_SEIR_model_pl(p: Params):
         }
         )
         
-        # Initialize household
+        # Initialize population
         cur_exposed_by_seed_df = pl.DataFrame()
         cur_all_exposed_cases = pl.DataFrame()
         
-        # Infect one individual in the household (seed infection)
+        # Infect one individual in the population (seed infection)
         
         seed_infection_index = 0#rng.randint(0, p.pop_size - 1)
-        household = household.with_columns(
+        population = population.with_columns(
         (pl.when(pl.col("id") == seed_infection_index)
         .then(pl.lit("Infectious"))
         .otherwise(pl.col("state"))).alias("state"),
@@ -86,7 +87,7 @@ def run_SEIR_model_pl(p: Params):
         
         if p.record_transmission:
             cur_records = possible_states.update(
-                household.group_by(pl.col("state")).agg(
+                population.group_by(pl.col("state")).agg(
                 pl.count()), on = ["state"], how = "left").with_columns(
                     pl.lit(ts[0] - p.time_step).alias("t"))
             all_records =  all_records.vstack(cur_records.with_columns(
@@ -94,15 +95,15 @@ def run_SEIR_model_pl(p: Params):
                 ))
         
         
-        # Simulate transmission in the household
+        # Simulate transmission in the population
         for t in ts:
-            infected_ids = household.filter(
+            infected_ids = population.filter(
                 pl.col("state") == "Infectious")["id"]
-            susceptible_individuals = household.filter(
+            susceptible_individuals = population.filter(
                 pl.col("state") == "Susceptible")
             will_infected_individuals = susceptible_individuals.with_columns(
                  pl.Series(rng.rand(susceptible_individuals.height) 
-                     < (p.transmission_rate * len(infected_ids)))
+                     < (transmission_rate * len(infected_ids)))
                  .alias("will_infected")
                     ).filter(pl.col("will_infected")).drop("will_infected")
             s_time_infectious = pl.Series("s_time_infectious", 
@@ -121,10 +122,10 @@ def run_SEIR_model_pl(p: Params):
                 pl.lit("Exposed").alias("state"),
                 )
             
-            household = household.update(will_infected_individuals, on = "id", how= "left")
+            population = population.update(will_infected_individuals, on = "id", how= "left")
             
             #I -> R state transition
-            household = household.with_columns(
+            population = population.with_columns(
                 pl.when((pl.col("state") == "Infectious" ) & 
                         ( pl.col("s_time_recovery") < t))
                 .then(pl.lit("Recovered")).otherwise(pl.col("state"))
@@ -132,7 +133,7 @@ def run_SEIR_model_pl(p: Params):
                 )
             
             #E -> I state transition
-            household = household.with_columns(
+            population = population.with_columns(
                pl.when((pl.col("state") == "Exposed" ) & 
                        (pl.col("s_time_infectious") < t))
                 .then(pl.lit("Infectious")).otherwise(pl.col("state"))
@@ -140,12 +141,12 @@ def run_SEIR_model_pl(p: Params):
                 )
             
             
-            new_infs_from_seed = household.filter(
+            new_infs_from_seed = population.filter(
                             (pl.col("s_time_exposed") == t) &
                              (pl.col("exposed_from") == seed_infection_index)
                              )
             if p.record_all_new_cases:
-                new_exposed_cases = household.filter(
+                new_exposed_cases = population.filter(
                                 (pl.col("s_time_exposed") == t))
                 
             cur_exposed_by_seed_df = cur_exposed_by_seed_df.vstack(new_infs_from_seed)
@@ -156,7 +157,7 @@ def run_SEIR_model_pl(p: Params):
             #record transmissions
             if p.record_transmission:
                 cur_records =  cur_records.vstack(possible_states.update(
-                    household.group_by(pl.col("state")).agg(
+                    population.group_by(pl.col("state")).agg(
                     pl.count()), on = ["state"], how = "left").with_columns(
                         pl.lit(t).alias("t")))
             
