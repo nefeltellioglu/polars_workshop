@@ -1,0 +1,6 @@
+id,state,age,age_group,age_day
+0,Susceptible,15,1,364
+1,Susceptible,20,2,21
+2,Infectious,61,6,211
+3,Susceptible,98,9,301
+4,Susceptible,100,10,2
