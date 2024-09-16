@@ -207,10 +207,10 @@ params = Params(no_runs = 10,
 
 
 #####plot transmission
-def plot_SEIR_pl(transmission_df) -> None:
+def plot_SEIR_pl(transmission_df, fig_size) -> None:
     
     
-    fig, ax = plt.subplots(figsize=(12, 8))
+    fig, ax = plt.subplots(figsize= fig_size)
     unique_runs = transmission_df["run_no"].unique().to_list()
 
     for r in unique_runs:

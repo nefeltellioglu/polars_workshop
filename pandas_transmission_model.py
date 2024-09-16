@@ -142,8 +142,8 @@ params = Params(
 )
 
 ##### Plot transmission
-def plot_SEIR_pd(transmission_df):
-    fig, ax = plt.subplots(figsize=(12, 8))
+def plot_SEIR_pd(transmission_df, fig_size):
+    fig, ax = plt.subplots(figsize=fig_size)
     
     for r in transmission_df["run_no"].unique():
         cur_df = transmission_df[transmission_df["run_no"] == r].sort_values("t")
