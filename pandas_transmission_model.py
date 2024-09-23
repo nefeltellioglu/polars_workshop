@@ -159,7 +159,7 @@ def plot_SEIR_pd(transmission_df, fig_size):
     
     plt.xlabel("Time (days)")
     plt.ylabel("Number")
-    plt.title("Disease Spread Dynamics")
+    #plt.title("Disease Spread Dynamics")
     plt.grid()
 
     # Remove duplicate labels in the legend
@@ -168,7 +168,7 @@ def plot_SEIR_pd(transmission_df, fig_size):
     plt.legend(by_label.values(), by_label.keys())
 
     plt.show()
-    # fig.savefig('plot_SEIR.tiff', bbox_inches="tight", dpi=300)
+    fig.savefig('plot_SEIR_pd.tiff', bbox_inches="tight", dpi=300)
 
 if __name__ == "__main__":     
     # get the start time

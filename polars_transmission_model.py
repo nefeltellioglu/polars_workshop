@@ -224,7 +224,7 @@ def plot_SEIR_pl(transmission_df, fig_size) -> None:
 
     plt.xlabel("Time (days)")
     plt.ylabel("Number")
-    plt.title("Disease Spread Dynamics")
+    #plt.title("Disease Spread Dynamics")
     plt.grid()
 
     handles, labels = plt.gca().get_legend_handles_labels()
@@ -232,7 +232,7 @@ def plot_SEIR_pl(transmission_df, fig_size) -> None:
     plt.legend(by_label.values(), by_label.keys())
 
     plt.show()
-    # fig.savefig('plot_SEIR.tiff', bbox_inches="tight", dpi=300)
+    fig.savefig('plot_SEIR_pl.tiff', bbox_inches="tight", dpi=300)
     
 if __name__ == "__main__":     
     # get the start time
