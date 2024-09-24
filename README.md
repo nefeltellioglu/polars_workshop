@@ -8,4 +8,4 @@
  pip install -r requirements.txt
 ```
 
-This workshop is developed by [Nefel Tellioglu]([nefeltellioglu](https://github.com/nefeltellioglu)) and [Julian Carlin](https://github.com/JulianCarlin)
+This workshop is developed by [Nefel Tellioglu](https://github.com/nefeltellioglu) and [Julian Carlin](https://github.com/JulianCarlin).
