@@ -47,10 +47,3 @@ def pick_ages_at_death_given_ages(death_rates_csv, ages, rng):
     death_ages = pick_age_death_given_cdf(ages, cdf_bins, rng)
 
     return death_ages
-
-
-if __name__ == "__main__":
-    ages = np.linspace(0, 100, num=1000)
-    rng = np.random.default_rng()
-
-    print(pick_ages_at_death_given_ages("death_rates.csv", np.array([100]), rng))
